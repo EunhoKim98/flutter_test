@@ -1,117 +1,125 @@
 import 'package:flutter/material.dart';
+import 'home_screen.dart'; // CounterScreen을 포함하는 파일
+import 'timer_screen.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
+// Stless 선언
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-            backgroundColor: Colors.white,
-
-            actions: [IconButton(onPressed: (){}, icon: Icon(Icons.list)),
-              IconButton(onPressed: (){}, icon: Icon(Icons.search)),
-              IconButton(onPressed: (){}, icon: Icon(Icons.notifications))],
-            title: Row(
-              children: [
-                Text("오류동",
-                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.w700,),),
-                IconButton(onPressed: (){}, icon: Icon(Icons.keyboard_arrow_down_sharp))
-              ],
-            )
-
-
-        ),
-
-        body:Container(
-          color: Colors.white,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-
-            children: [
-              // 사진
-              Container(
-                width: 100,
-                height: 100,
-                margin: EdgeInsets.fromLTRB(5, 0, 10, 0),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Color.fromRGBO(232, 229, 229, 2.0),
-                    width: 2,
-                  ),
-                  borderRadius: BorderRadius.circular(5)
-                ),
-                child: ClipRRect(
-                  child: Image.asset("assets/test.jpg"),
-                )
-
-              ),
-
-
-              Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-
-                children: [
-                  //제목
-                  Row(
-                    children: [
-                      Text("삼성 노트북,\n NT750XGR-A58AG 미개봉 신품         ",
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),),
-                      IconButton(onPressed: (){}, icon: Icon(Icons.more_vert_sharp)),
-                    ],
-                  ),
-
-                  //지역, 올린시간
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-
-                    children: [
-                      Text("개봉동 · 1시간 전")
-                    ],
-                  ),
-                  //가격
-                  Text("540,000원", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),),
-
-                ],
-              ),
-
-              Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      IconButton(onPressed: (){}, icon: Icon(Icons.chat)),
-                      Text("1", style: TextStyle(fontSize:5, color: Color.fromRGBO(232, 229, 229, 2.0)),),
-                      IconButton(onPressed: (){}, icon: Icon(Icons.favorite)),
-                      Text("7", style: TextStyle(fontSize:5, color: Color.fromRGBO(232, 229, 229, 2.0)),),
-                    ],
-                  ),
-                ]
-
-              )
-
-            ],
-
-
-
-          ),
-
-        )
-
-
-      )
-
-
+      title: "My First App",
+      home: MyHomepage(),
     );
   }
 }
+
+// MyHomePage
+class MyHomepage extends StatefulWidget {
+  const MyHomepage({super.key});
+
+  @override
+  State<MyHomepage> createState() => _MyHomepageState();
+}
+
+class _MyHomepageState extends State<MyHomepage> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: _navItems.length, vsync: this);
+    _tabController.addListener(tabListener);
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(tabListener);
+    _tabController.dispose(); // TabController 메모리 해제
+    super.dispose();
+  }
+
+  void tabListener() {
+    setState(() {
+      _index = _tabController.index;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("TEST")),
+      body: TabBarView(
+        physics: const NeverScrollableScrollPhysics(),
+        controller: _tabController,
+        children: const [
+          CounterScreen(), // 카운터 화면
+          TimerScreen(),   // 타이머 화면
+          // 추가 NavItem은 여기에도 기입
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        selectedItemColor: Colors.blue, // 선택된 아이템 색상
+        unselectedItemColor: Colors.grey, // 선택되지 않은 아이템 색상
+
+        selectedLabelStyle: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 10,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontSize: 10,
+        ),
+        type: BottomNavigationBarType.fixed,
+        onTap: (int index) {
+          _tabController.animateTo(index);
+        },
+        currentIndex: _index,
+        items: _navItems.map((item) {
+          return BottomNavigationBarItem(
+            icon: Icon(
+              _index == item.index ? item.activeIcon : item.inactiveIcon,
+              color: _index == item.index ? Colors.blue : Colors.grey,
+            ),
+            label: item.label,
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+class NavItem {
+  final int index;
+  final IconData activeIcon;
+  final IconData inactiveIcon;
+  final String label;
+
+  const NavItem({
+    required this.index,
+    required this.activeIcon,
+    required this.inactiveIcon,
+    required this.label,
+  });
+}
+
+const _navItems = [
+  NavItem(
+    index: 0,
+    activeIcon: Icons.home,
+    inactiveIcon: Icons.home_outlined,
+    label: 'Counter',
+  ),
+  NavItem(
+    index: 1,
+    activeIcon: Icons.calendar_today,
+    inactiveIcon: Icons.calendar_today_outlined,
+    label: 'Timer',
+  ),
+  // 추가적인 NavItem을 여기에 추가할 수 있습니다.
+];
